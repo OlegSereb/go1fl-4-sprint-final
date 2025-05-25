@@ -40,7 +40,7 @@ func main() {
 		fmt.Println(v)
 	}
 
-	// тренировки
+	// Тренировки.
 	trainings := []string{
 		"3456,Ходьба,3h00m",
 		"something is wrong",
