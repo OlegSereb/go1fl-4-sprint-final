@@ -109,7 +109,7 @@ func TrainingInfo(data string, weight, height float64) (string, error) {
 	}
 
 	// Формируем строку с информацией о тренировке
-	result := fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f",
+	result := fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f\n",
 		activity, duration.Hours(), distanceKm, meanSpd, calories)
 
 	return result, nil
