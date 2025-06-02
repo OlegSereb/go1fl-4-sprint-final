@@ -10,11 +10,17 @@ import (
 )
 
 func main() {
-	weight := 84.6
-	height := 1.87
+	const (
+		weight = 84.6
+		height = 1.87
+	)
 
-	// дневная активность
-	input := []string{
+	// Настройка логгера
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.SetOutput(os.Stdout)
+
+	// Дневная активность
+	dailyActivities := []string{
 		"678,0h50m",
 		"792,1h14m",
 		"1078,1h30m",
@@ -25,22 +31,20 @@ func main() {
 	}
 
 	fmt.Println("Активность в течение дня")
+	fmt.Println("========================")
 
-	var (
-		dayActionsInfo string
-		dayActionsLog  []string
-	)
-
-	for _, v := range input {
-		dayActionsInfo = daysteps.DayActionInfo(v, weight, height)
-		dayActionsLog = append(dayActionsLog, dayActionsInfo)
+	for i, activity := range dailyActivities {
+		log.Printf("Обработка активности #%d: %s", i+1, activity)
+		info := daysteps.DayActionInfo(activity, weight, height)
+		if info == "" {
+			log.Printf("Пропущена некорректная активность #%d: %s", i+1, activity)
+			continue
+		}
+		fmt.Println(info)
+		fmt.Println("-----------------------")
 	}
 
-	for _, v := range dayActionsLog {
-		fmt.Println(v)
-	}
-
-	// тренировки
+	// Тренировки
 	trainings := []string{
 		"3456,Ходьба,3h00m",
 		"something is wrong",
@@ -51,20 +55,17 @@ func main() {
 		"15392,Бег,0h45m",
 	}
 
-	var trainingLog []string
+	fmt.Println("\nЖурнал тренировок")
+	fmt.Println("================")
 
-	for _, v := range trainings {
-		trainingInfo, err := spentcalories.TrainingInfo(v, weight, height)
+	for i, training := range trainings {
+		log.Printf("Обработка тренировки #%d: %s", i+1, training)
+		info, err := spentcalories.TrainingInfo(training, weight, height)
 		if err != nil {
-			log.Printf("не получилось получить информацию о тренировке: %v", err)
-			os.Exit(1)
+			log.Printf("Ошибка обработки тренировки #%d: %v", i+1, err)
+			continue
 		}
-		trainingLog = append(trainingLog, trainingInfo)
-	}
-
-	fmt.Println("Журнал тренировок")
-
-	for _, v := range trainingLog {
-		fmt.Println(v)
+		fmt.Println(info)
+		fmt.Println("----------------")
 	}
 }
