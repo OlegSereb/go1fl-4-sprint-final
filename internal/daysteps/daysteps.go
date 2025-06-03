@@ -1,8 +1,8 @@
 package daysteps
 
 import (
-	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -15,69 +15,57 @@ const (
 	stepLength = 0.65
 	// Количество метров в одном километре
 	mInKm = 1000
+	// Калории, сжигаемые за один шаг на кг веса (ккал/шаг/кг)
+	// caloriesPerStep = 0.035
 )
 
 func parsePackage(data string) (int, time.Duration, error) {
-	// Разделяем data по ','
 	parts := strings.Split(data, ",")
-
-	// Проверить, чтобы длина слайса была равна 2.
 	if len(parts) != 2 {
-		return 0, 0, errors.New("некорректный формат данных (ожидается: шаги,длительность)")
+		return 0, 0, fmt.Errorf("неверный формат данных: требуется разделение на 2 части через запятую")
 	}
 
-	// Преобразовать первый элемент слайса (количество шагов) в тип int.
-	steps, err := strconv.Atoi(strings.TrimSpace(parts[0]))
+	stepsStr := parts[0]
+	durationStr := parts[1]
+
+	steps, err := strconv.Atoi(stepsStr)
 	if err != nil {
-		return 0, 0, fmt.Errorf("неверный формат шагов: %w", err)
+		return 0, 0, fmt.Errorf("ошибка при парсинге количества шагов: %w", err)
 	}
-
-	// Проверить: количество шагов должно быть больше 0.
 	if steps <= 0 {
-		return 0, 0, errors.New("количество шагов должно быть больше 0 (parsePackage)")
+		return 0, 0, fmt.Errorf("количество шагов должно быть больше 0")
 	}
 
-	// Преобразовать второй элемент слайса в time.Duration.
-	duration, err := time.ParseDuration(strings.TrimSpace(parts[1]))
+	duration, err := time.ParseDuration(durationStr)
 	if err != nil {
-		return 0, 0, fmt.Errorf("неверный формат длительности: %w", err)
+		return 0, 0, fmt.Errorf("ошибка при парсинге продолжительности: %w", err)
 	}
-
-	// Проверка на нулевую продолжительность
 	if duration <= 0 {
-		return 0, 0, errors.New("длительность должна быть больше 0")
+		return 0, 0, fmt.Errorf("продолжительность тренировки должна быть больше нуля")
 	}
 
 	return steps, duration, nil
 }
 
+//func round(val float64) float64 {
+//return float64(int(val*100+0.5)) / 100
+//}
+
 func DayActionInfo(data string, weight, height float64) string {
-	// Значения должны быть положительными.
-	if weight <= 0 || height <= 0 {
-		return "Ошибка: вес и рост должны быть положительными числами"
-	}
-
-	// Получить данные о количестве шагов и продолжительности прогулки
 	steps, duration, err := parsePackage(data)
-	if err != nil {
-		return fmt.Sprintf("Ошибка: %v", err)
+	if err != nil || steps <= 0 {
+		log.Println("Ошибка:", err)
+		return ""
 	}
 
-	// Вычислить дистанцию в метрах
 	distanceMeters := float64(steps) * stepLength
-
-	// Перевести дистанцию в километры
 	distanceKm := distanceMeters / mInKm
 
-	// Вычислить количество калорий, потраченных на прогулке
 	calories, err := spentcalories.WalkingSpentCalories(steps, weight, height, duration)
 	if err != nil {
-		return fmt.Sprintf("Ошибка при расчете калорий: %v", err)
+		log.Println("Ошибка вычисления калорий:", err)
+		return ""
 	}
 
-	// Сформировать строку с результатами
-	return fmt.Sprintf(
-		"Количество шагов: %d.\nДистанция составила %.2f км.\nВы сожгли %.2f ккал.\n",
-		steps, distanceKm, calories,
-	)
+	return fmt.Sprintf("Количество шагов: %d.\nДистанция составила %.2f км.\nВы сожгли %.2f ккал.\n", steps, distanceKm, calories)
 }

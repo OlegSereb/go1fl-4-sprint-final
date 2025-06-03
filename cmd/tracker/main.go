@@ -10,17 +10,11 @@ import (
 )
 
 func main() {
-	const (
-		weight = 84.6
-		height = 1.87
-	)
+	weight := 84.6
+	height := 1.87
 
-	// Настройка логгера
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	log.SetOutput(os.Stdout)
-
-	// Дневная активность
-	dailyActivities := []string{
+	// дневная активность
+	input := []string{
 		"678,0h50m",
 		"792,1h14m",
 		"1078,1h30m",
@@ -31,20 +25,22 @@ func main() {
 	}
 
 	fmt.Println("Активность в течение дня")
-	fmt.Println("========================")
 
-	for i, activity := range dailyActivities {
-		log.Printf("Обработка активности #%d: %s", i+1, activity)
-		info := daysteps.DayActionInfo(activity, weight, height)
-		if info == "" {
-			log.Printf("Пропущена некорректная активность #%d: %s", i+1, activity)
-			continue
-		}
-		fmt.Println(info)
-		fmt.Println("-----------------------")
+	var (
+		dayActionsInfo string
+		dayActionsLog  []string
+	)
+
+	for _, v := range input {
+		dayActionsInfo = daysteps.DayActionInfo(v, weight, height)
+		dayActionsLog = append(dayActionsLog, dayActionsInfo)
 	}
 
-	// Тренировки
+	for _, v := range dayActionsLog {
+		fmt.Println(v)
+	}
+
+	// тренировки
 	trainings := []string{
 		"3456,Ходьба,3h00m",
 		"something is wrong",
@@ -55,17 +51,20 @@ func main() {
 		"15392,Бег,0h45m",
 	}
 
-	fmt.Println("\nЖурнал тренировок")
-	fmt.Println("================")
+	var trainingLog []string
 
-	for i, training := range trainings {
-		log.Printf("Обработка тренировки #%d: %s", i+1, training)
-		info, err := spentcalories.TrainingInfo(training, weight, height)
+	for _, v := range trainings {
+		trainingInfo, err := spentcalories.TrainingInfo(v, weight, height)
 		if err != nil {
-			log.Printf("Ошибка обработки тренировки #%d: %v", i+1, err)
-			continue
+			log.Printf("не получилось получить информацию о тренировке: %v", err)
+			os.Exit(1)
 		}
-		fmt.Println(info)
-		fmt.Println("----------------")
+		trainingLog = append(trainingLog, trainingInfo)
+	}
+
+	fmt.Println("Журнал тренировок")
+
+	for _, v := range trainingLog {
+		fmt.Println(v)
 	}
 }
